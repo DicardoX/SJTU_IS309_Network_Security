@@ -4,7 +4,7 @@
 
 ## 1. Motivation
 
-- **对称密钥分布管理(Symmetric Key Distribution and Management)**的局限性：
+- **对称密钥分布管理(Symmetric Key Distribution and Management)** 的局限性：
   
   - 密钥数目过多
   
