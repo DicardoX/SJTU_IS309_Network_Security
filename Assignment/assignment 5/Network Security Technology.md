@@ -16,7 +16,7 @@
 
 - 欧拉 $\phi$ 函数的计算：
 
-```
+```python
 # Euler Phi Function
 # Input: a number n
 # Output: Euler phi function \phi(n)
@@ -35,7 +35,7 @@ def euler_phi(n):
 
 - 欧几里得算法判断两个数是否互素：
 
-```
+```python
 # Judge whether num1 and num2 are prime to each other, use Euclidean Algorithm
 def are_prime_to_each_other(num1, num2):
     A = max(num1, num2)
@@ -49,7 +49,7 @@ def are_prime_to_each_other(num1, num2):
 
 - 重复模乘法以简化模指数计算：
 
-```
+```python
 # Repeated Modular Multiplication
 # Input: a^u % n
 # Output: the calculated value
@@ -62,7 +62,7 @@ def repeated_modular_multiplication(a, u, num):
 
 - 平方-乘算法以简化模指数计算：
 
-```
+```python
 # Square and Multiply Algorithm
 # Input: a^u % n
 # Output: the calculated value
@@ -97,7 +97,7 @@ def square_and_multiply_algorithm(a, u, num):
 
 ​	在素数检测算法的实现中，我们首先需要根据公式 $N-1 = 2^ru$，计算 *r* 和 *u* 的值：
 
-```
+```python
 # Compute r and u
     r = 0
     tmpNum = num
@@ -109,7 +109,7 @@ def square_and_multiply_algorithm(a, u, num):
 
 ​	之后，我们基于PPT中伪代码的思想如下实现素数检测算法的主体部分：
 
-```
+```python
 is_prime = False
     # Test for n times
     for idx in range(0, n, 1):
@@ -143,7 +143,7 @@ is_prime = False
 
   接下来，我们介绍基于上述素数检测算法实现的素数生成算法：
 
-```
+```python
 # Generate number
 # Input: n is the security parameter
 def generate_prime(n):
@@ -184,7 +184,7 @@ def generate_prime(n):
 
 ​	此外，我们还实现了判断 *perfect power* 的函数：
 
-```
+```python
 # Judge whether num is a perfect power
 def is_perfect_power(num):
     s = int(pow(num, 0.5))
