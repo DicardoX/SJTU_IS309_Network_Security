@@ -101,11 +101,54 @@
 
   - 注意到，当同一个 *ip* 多次访问目标网站时，将并不会发生上述报文交换，猜测的原因是已将网站内容存储在本机的 *cache* 中
 
+------
 
 
 
+## *DHCP* 欺骗攻击
 
+[python 局域网dhcp嗅探_bettercap xerosploit 内网嗅探与劫持](https://blog.csdn.net/weixin_39536728/article/details/114913910)
 
+[瑞士军刀 Bettercap2.4使用教程](https://blog.csdn.net/u012570105/article/details/80561778)
+
+-  *nmap* 端口扫描工具的安装：[Ref](https://blog.csdn.net/weixin_28953819/article/details/113645153)
+
+  ```shell
+  brew install nmap
+  ```
+
+- 当前 *IP* 地址为 `10.166.185.228`，则扫描整个子网：
+
+  ```shell
+  sudo nmap -PS -O  10.166.185.1/24 -v
+  ```
+
+  `-PS`：nmap将通过发送单个SYN数据包来检查主机是否在线
+
+  `-O`：指定检测远程主机的操作系统类型
+
+  **作用是获得当前子网中可攻击的 *host***
+
+- *bettercap* 中间人攻击工具的安装：
+
+  ```shell
+  brew install bettercap
+  ```
+
+- 运行指令进入交互模式：
+
+  ```
+  sudo bettercap
+  Password:
+  bettercap v2.30.2 (built for darwin amd64 with go1.16.2) [type 'help' for a list of commands]
+  
+  10.166.0.0/16 > 10.166.185.228  »  
+  
+  ```
+
+  
+
+- 
 
 
 
