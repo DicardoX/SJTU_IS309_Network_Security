@@ -107,8 +107,6 @@
 
 ## *DHCP* 欺骗攻击
 
-[python 局域网dhcp嗅探_bettercap xerosploit 内网嗅探与劫持](https://blog.csdn.net/weixin_39536728/article/details/114913910)
-
 [瑞士军刀 Bettercap2.4使用教程](https://blog.csdn.net/u012570105/article/details/80561778)
 
 -  *nmap* 端口扫描工具的安装：[Ref](https://blog.csdn.net/weixin_28953819/article/details/113645153)
@@ -128,6 +126,8 @@
   `-O`：指定检测远程主机的操作系统类型
 
   **作用是获得当前子网中可攻击的 *host***
+
+----------------------------- 上述内容不包含在实验内容范围内 --------------------------
 
 - *bettercap* 中间人攻击工具的安装：
 
