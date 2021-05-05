@@ -6,7 +6,7 @@
 
 -----
 
-## *Wireshark* 入门
+## 1 *Wireshark* 入门
 
 - 当您**在不启动捕获或打开捕获文件的情况下打开Wireshark**时，它将显示“欢迎屏幕”，其中列出了**任何最近打开的捕获文件和可用的捕获接口**。每个接口的网络活动将显示在接口名称旁边的火花线中。**可以选择多个接口，同时从中捕获。**
 
@@ -50,15 +50,12 @@
       - 解析网络名称：将网络地址转化为名称
       - 解析运输名称：翻译运输名称（端口号）
 
-- 现在的浏览器客户端每次发起的会话都是随机加密的，防止暴力破解。所以需要将会话的密钥导入：
-
-  - 
 
 -----
 
 
 
-## 实验内容
+## 2 基于 *Wireshark* 的流量分析
 
 - 仅对目标网站 *ping* 一次：
 
@@ -105,7 +102,7 @@
 
 
 
-## *DHCP* 欺骗攻击
+## 3 *DHCP* 欺骗攻击
 
 [瑞士军刀 Bettercap2.4使用教程](https://blog.csdn.net/u012570105/article/details/80561778)
 
@@ -185,9 +182,39 @@
 
 - 据上述实验结果可知，*DHCP Spoofing* 攻击成功。
 
-  
+
+-------
 
 
 
+## 4 *ARP* 欺骗攻击（*Mac* 地址欺骗攻击）
 
+[中间人攻击之Bettercap工具使用](http://akevin.cn/index.php/archives/69/)
+
+- 安装第 *3* 节中的方法安装好 *bettercap* 中间人攻击工具
+- 首先打开 *bettercap* 的交互界面，并使用 *net.recon* 模块查看待攻击目标的 *ip* 地址
+- 然后开启 *arp* 欺骗攻击：
+
+```
+sudo bettercap
+net.recon on
+set arp.spoof.targets 192.168.31.251
+arp.spoof on
+```
+
+​		注意，若不指定攻击目标的 *ip*，则会向局域网内的所有 *host* 进行攻击
+
+​		攻击主机的输出如下：
+
+<img src="./cut/截屏2021-05-05 上午11.22.10.png" alt="avatar" style="zoom:30%;" />
+
+- 注意到，在开启 *ARP* 欺骗之前，选中的目标机器 (*Win10*) 查询到的局域网路由器 (*192.168.31.1*) 的 *MAC* 地址为 *9c-9d-7e-51-3f-2f*
+
+  <img src="./cut/1.png" alt="avatar" style="zoom:50%;" />
+
+- 开启 *ARP* 欺骗后，选择的目标机器查询到的局域网路由器的 *MAC* 地址为 *f8-ff-c2-10-e4-bb*，与攻击主机一致
+
+<img src="./cut/2.png" alt="avatar" style="zoom:50%;" />
+
+- 据上述实验结果可知，*ARP Spoofing* 攻击 (*Mac Spoofing Attack*) 成功。
 
