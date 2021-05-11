@@ -13,7 +13,7 @@
 *Command:*  `sudo python3 DNS_Spoofing.py -i en0 -h hostnames udp`
 
 - `-i`：指定**攻击者实施攻击所监听的网络接口名称**
-- `-h`：指定写有待 *poison* 域名和 *IP* 的映射文件。文件内容如"www.sjtu.edu.cn 119.3.32.96"，用于表示仅针对哪些域名进行poison，注意后面的 *ip* 地址与域名并无对应关系。
+- `-h`：指定写有待 *poison* 域名和 *IP* 的映射文件。文件内容如"www.sjtu.edu.cn 119.3.32.96"，用于表示仅针对哪些域名进行poison，注意后面的 *ip* 地址与域名并无对应关系。注意，后面的 *IP* 地址为想要重定向到的地址，在攻击时一般被设置为 *Victim host* 的 *IP* 地址。
 - `expression`：相当于是过滤器的选择，使用 `udp` 即可
 
 -------
@@ -54,6 +54,22 @@
 
 <img src="./cut/截屏2021-05-11 上午2.07.12.png" alt="avatar" style="zoom:50%;" />
 
-- 注意到，伪造的 *IP dst* 还向攻击主机 (`192.168.31.229`) 发送了一条 *ICMP* 报文，告知该 *DNS* 请求包的 *dst* 无法到达，原因是攻击主机最远只能到达其本身设置的 *DNS* 服务器 (`192.168.31.1`)，不能跳出子网直接访问 `202.120.2.119`。
+- 注意到，伪造的 *IP dst* 还向攻击主机 (`192.168.31.229`) 发送了一条 *ICMP* 报文，告知该 *DNS* 请求包的 *dst* 无法到达，原因是攻击主机最远只能到达其本身设置的 *DNS* 服务器 (`192.168.31.1`)，不能跳出子网直接访问 `202.120.2.119`。这是因为我们直接使用攻击主机进行抓包，下面将介绍在 *Victim host* 中进行抓包的结果。
+- 在一台 *Win10* 主机中运行该 `DNS_Spoofing.py` 脚本，作为攻击主机，*MacOS* 运行 *Wireshark* 进行抓包。注意到，为了让伪造的 *DNS pkt* 能够到达 *Victim*，需要在 *Win10* 主机 (`192.168.31.251`) 中的 *hostnames* 内将 `www.bilibili.com` 的 *redirect_to* 配置为 *Victim* 的 *IP* 地址 (`192.168.31.229`)：
+
+<img src="./cut/6D0FE92067674D353AA810766E793EDE.png" alt="avatar" style="zoom:80%;" />
+
+​		可以看到，攻击主机成功向 *Victim* 发送了两个伪造的 *DNS* 包。
+
+- 在 *Victim* 中使用 *Wireshark* 嗅探到如下两个 *DNS* 响应包：
+
+<img src="./cut/截屏2021-05-11 下午12.17.51.png" alt="avatar" style="zoom:50%;" />
+
+​		根据 *Info* 字段可以初步判定这两个 *DNS* 响应包 (*line 2, 3*) 就是在攻击主机中伪造并发送的 *DNS pkt*。再利用 *DNS id* 进一步判断：
+
+<img src="./cut/截屏2021-05-11 下午12.18.08.png" alt="avatar" style="zoom:50%;" />
+
+​		可以看到 `0x28e6` 与攻击主机中打印的 *DNS id = 10470* 对应。
+
 - 综上所述，本次 *DNS Poison Attack* 成功。
 
