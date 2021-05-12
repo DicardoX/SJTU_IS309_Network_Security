@@ -8,6 +8,8 @@ from scapy.all import sniff
 # DNS Spoofing detector
 def detector(pkt):
     if pkt.haslayer(IP) and pkt.haslayer(DNS) and pkt[DNS].qr == 1:
+        if pkt[DNS] == 0 or pkt[DNS].qd is None:
+            return
         if pkt[DNS].id in captured and (
                 pkt[DNS].qd.qname.rstrip('.') == captured[pkt[DNS].id][DNS].qd.qname.rstrip('.')):
             l1 = []
@@ -26,10 +28,14 @@ def detector(pkt):
             l1 = sorted(l1)
             l2 = sorted(l2)
             if l1 != l2:
-                print("DNS poisoning attempt")
+                print("")
+                print("---------------------------------------------------------------------------------")
+                print("DNS Poison Attack Detected!")
                 print("TXID %s Request %s" % (pkt[DNS].id, pkt[DNS].qd.qname.rstrip('.')))
-                print("Answer1:", l1)
-                print("Answer2:", l2)
+                print("Response packet 1:", l1)
+                print("Response packet 2:", l2)
+                print("---------------------------------------------------------------------------------")
+                print("")
         else:
             captured[pkt[DNS].id] = pkt
 

