@@ -1,8 +1,5 @@
 # textbook_RSA.py
 
-import random
-import numpy as np
-import binascii
 import argparse
 
 from utils import generate_keys, encrypt_plaintext, decrypt_ciphertext, read_keys
