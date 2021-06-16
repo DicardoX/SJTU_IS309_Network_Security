@@ -34,6 +34,42 @@
     python CCA2_attack.py --key_size 128
     ```
 
-    
 
-    
+------
+
+
+
+## 3. Task 3: 实现 *OAEP Key Padding* 来保护 *textbook RSA* 的安全
+
+- 基于 *textbook_RSA.py* 进行效果验证：
+
+    - 若进行 *padding* 但不进行 *unpadding*（模拟被攻击者截取，无法 *unpadding*）：
+
+        ```shell
+        python textbook_RSA.py --encrypt_file ./test/plaintext.txt --OAEP_key_padding
+        python textbook_RSA.py --decrypt_file ./test/ciphertext.txt
+        ```
+
+    - 同时进行 *padding* 和 *unpadding*（模拟正常的接收者）：
+
+        ```shell
+        python textbook_RSA.py --encrypt_file ./test/plaintext.txt --OAEP_key_padding --decrypt_OAEP
+        python textbook_RSA.py --decrypt_file ./test/ciphertext.txt
+        ```
+
+- 在 *CCA2 attack* 中进行效果验证：
+
+    - 若进行 *padding* 但不进行 *unpadding*（模拟被攻击者截取，无法 *unpadding*）：
+
+        ```shell
+        python CCA2_attack.py --OAEP_key_padding
+        ```
+
+    - 同时进行 *padding* 和 *unpadding*（模拟正常的接收者）：
+
+        ```shell
+        python CCA2_attack.py --OAEP_key_padding --decrypt_OAEP_for_receiver
+        ```
+
+
+

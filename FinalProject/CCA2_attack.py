@@ -8,6 +8,8 @@ from utils import client, server, generate_history_WUP_message, break_AES_key, d
 # Arguments Settings
 parser = argparse.ArgumentParser()
 parser.add_argument('--key_size', type=int, default=128)
+parser.add_argument('--OAEP_key_padding', action="store_true")
+parser.add_argument('--decrypt_OAEP_for_receiver', action="store_true")
 args = parser.parse_args()
 
 # Unit length
@@ -16,12 +18,17 @@ unit_length = 16
 
 # Main function for CCA2 attack
 def CCA2_attack_func():
+    # Key padding option: 0 for not padding, 1 for padding
+    key_padding_option = 1 if args.OAEP_key_padding else 0
+    # Decrypt OAEP key padding: 0 for not decrypted, 1 for decrypted
+    decrypted_OAEP_option = 1 if args.decrypt_OAEP_for_receiver else 0
+
     # Client
-    m_client = client(args.key_size)
+    m_client = client(args.key_size, key_padding_option, decrypted_OAEP_option)
     # Server
-    m_server = server(m_client.AES_key)
+    m_server = server(m_client.AES_key, key_padding_option, decrypted_OAEP_option)
     # Generate history message with request and response encrypted with AES key
-    history_message = generate_history_WUP_message(m_client.AES_key, m_client.public_key)
+    history_message = generate_history_WUP_message(m_client.AES_key, m_client.public_key, key_padding_option, decrypted_OAEP_option)
 
     # --------------- In the following steps, we attempt to break the history message ----------------\
     print("")
