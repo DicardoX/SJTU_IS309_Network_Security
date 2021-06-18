@@ -6,14 +6,14 @@
 
 ### 1.1 模（同余）
 
-- **整数 $a$ 与 $b$ 对模 $n$ 同余：$a \equiv b \ (\bmod n)$**
+- **整数 $a$ 与 $b$ 对模 $n$ 同余：$a \equiv b \ (\bmod n) \Rightarrow n | a - b$** 
 - 性质：
   - $a \equiv a \ (\bmod n)$
   - $a \equiv b \ (\bmod n)$  $\Leftrightarrow$ $b \equiv a \ (\bmod n)$  
-  - $a \equiv b \ (\bmod n)$ + $b \equiv c \ (\bmod n)$  $\Rightarrow$  $a \equiv c \ (\bmod n)$  
+  - $a \equiv b \ (\bmod n)$ ，$b \equiv c \ (\bmod n)$  $\Rightarrow$  $a \equiv c \ (\bmod n)$  
   - $a \equiv b \ (\bmod n)$  $\Leftrightarrow$  $a \bmod n = b \bmod n$ 
   - **Reduction**：$(a + b) \bmod n = (a \bmod n + b \bmod n) \bmod n$  
-    - <font color=blue>注意</font>：对减法/乘法同样适用
+    - <font color=blue>注意</font>：对减法/乘法同样适用：$(ab) \bmod n = ((a \bmod n) b) \bmod n$
   - 若 $(a + b) \equiv (a + c) \ (\bmod n)$，则 $b \equiv c \ (\bmod n)$ 
   - 若 $ab \equiv ac \ (\bmod n)$，则仅当 $a$ 与 $n$ 互素时，才有 $b \equiv c \ (\bmod n)$ 
 - **模逆元**：$ab \bmod n = 1$ $\Rightarrow$  $a$ 是 $b$ 模 $n$ 的逆元
@@ -62,7 +62,8 @@
 - 对于 $n \geq 1$，$\phi(n)$ 表示处于区间 $[1, n]$ 内且与 $n$ 互素的整数的数量
   - 性质一（**可乘性** ）：若 $gcd(m, n)=1$，则 $\phi(mn)=\phi(m) \times \phi(n)$ 
   - 性质二（**素数底整数幂性**）：对于一个素数 $p$ 和一个整数 $e \geq 1$，$\phi(p^e) = p^{e-1}(p-1)$  
-  - 性质三（**一般分解性质**）：令 $n=p_1^{e_1}p_2^{e_2}...p_k^{e_k}$，其中 $p_1, p_2, ...., pk$ 是素数且 $e_i$ 是正整数，则： $\phi(n)=n(1-1/p_1)(1-1/p_2)...(1-1/p_k)$
+      - 若 $n$ 为素数，则 $\phi(n) = n-1$
+  - 性质三（**一般分解性质**）：令 $n=p_1^{e_1}p_2^{e_2}...p_k^{e_k}$，其中 $p_1, p_2, ...., pk$ 是素数且 $e_i$ 是正整数，则： $\phi(n)=n(1-1/p_1)(1-1/p_2)...(1-1/p_k)$，若 $e_i > 1$，$(1 - 1/p_i)$ 不需要重复多次 
 
 -----------
 
@@ -72,6 +73,7 @@
   - **推论**：若 $a$ 不能被 $p$ 整除且 $n \equiv m \ (\bmod p-1)$，则 $a^n \equiv a^m \ (\bmod p)$ 
   - 推论（**欧拉定理**）：令 $n$ 为正数，则对任何与 $n$ 互素的整数 $a$ 都有：$a^{\phi(n)} \equiv 1 \ (\bmod n)$ 
   - $\star$ **推论**：对整数 $a$ 和正整数 $k$ ，$n$，若 $a$ 和 $n$ 互素，则：$a^k \bmod n = a^{k \bmod \phi(n)} \bmod n$ 
+- **欧拉定理可以推出费马小定理**
 
 --------
 
@@ -117,7 +119,7 @@
 - 定义：$(G, \circ)$ 是循环群的条件是：**存在元素 $g \in G$满足对任何 $a \in G$，都存在整数 $i$ 使得 $a = g^i \ (\bmod n)$**。 $g$ 被称为 $G$ 的**生成元**或**基本元**，也被称为 $n$ 的**原根**
 - $Z_n^*$ 至少含有一个生成元  $\Leftrightarrow$  当且仅当 $n = 2, 4, p^k, 2p^k$，其中 $p$ 是一个奇素数且 $k \geq 1$ 
 - 性质：令 $G$ 为循环群，**秩 $m$ 代表 $|G| = m$**，$g \in G$ 是生成元，则：
-  - $g^m = e$，$e$ 为单位元
+  - $g^m = e$，$e$ 为单位元（注意，删除中间的某个元素以降低秩的方法不成立，原因是此时这个群不再满足存在逆元，因此不再是群）
   - 对任何非负整数 $x, y$，有：$g^{xy} = g^{yx}$
   - 对任何非负整数 $x$ 和元素 $h \in G$，有 $h^x = h^{x \bmod m}$
 
@@ -168,10 +170,9 @@
     - 输入：整数 *N*，参数 $1^t$ 
     - 输出：*N* 是否为素数的判定
     - 首先，若 *N* 为偶数或[完全数](https://baike.baidu.com/item/完全数/370913?fr=aladdin)，返回"合数"
-    - 通过不断除2计算：$N - 1 = 2^r u$，$r \geq 1$ and *u* 是奇数
-    - 迭代 *t* 次：
-    - 若满足以下，则为合数，只要又一次不满足，直接返回，说明为素数
-    - $a^u \neq 1$ 可以去除
+    - 通过不断除 $2$ 计算 $r$ 和 $u$：$N - 1 = 2^r u$，$r \geq 1$ and *u* 是奇数
+    - 迭代 *t* 次：若有一次满足以下条件，则为合数，直接返回
+        - $a^u \neq 1$ 可以去除
   
   <img src="/Users/dicardo/Desktop/网络安全技术笔记/cut/截屏2021-03-23 下午1.49.29.png" alt="avatar" style="zoom:50%;" />
   
@@ -208,10 +209,10 @@
 
 ### 4.2 *RSA* 假设`RSA Assumption`
 
-- *GenRSA* RSA生成算法：
+- *GenRSA* RSA生成算法：**运行 $GenModulus(1^n)$ 获得 $N=pq$，再找到 $e$ 使得 $gcd(e,\phi(N))=1$，最后再求出 $e$ 模 $N$ 的逆元 $d$**
   - 多项式算法
   - 输入：安全参数 $1^n$（ ***n* 指示输出的长度为 *n-bit*** ）
-  - 输出：*(N, e, d)*，其中 *N* 是两个 *n-bit* 的素数，$e$ 和 $d$ 满足：
+  - 输出：*(N, e, d)*，其中 ***N* 是两个 *n-bit* 的素数的积**，$e$ 和 $d$ 满足：
     - $(N, p, q) \leftarrow GenModulus(1^n)$ ：模生成算法
     - $\phi(N) := (p-1)(q-1)$ （**由 *N = pq* 且 *p*、*q* 为素数推导**）
     - 选择 *e* 使得：$gcd(e, \phi(N)) = 1$
@@ -224,8 +225,9 @@
   - 若 $x^e = y \bmod N$，输出1；否则，输出0
 - **RSA假设的定义**：*RSA* 问题相较于 *GenRSA* RSA生成更难，对于所有PPT算法 *A*，都存在一个可忽略的函数 *negl* 满足：$Pr[RSAInv_{A, GenRSA}(n) = 1] \leq negl(n)$
 - **由上述 *GenRSA* RSA生成算法生成的RSA问题很难**
-- <font color=blue>注意：</font> **若解决大整数分解问题，则可以解决 *RSA-inv* 问题** （否则由 *N* 无法求出 $\phi(N)$。若能求出，则可以假设 *x* 与 *y* 互素，进而使用欧拉定理的推论对 $x^e = y \bmod N$ 进行简化，为 $x^{e \bmod \phi(N) = d} = y \bmod N$，进而求出 *d* ，再利用平方-乘等模指数算法解决 *RSA* 问题）。因此，**大整数分解问题更难**，**大整数假设更弱（更适合作为策略的依赖）**。
-- **问题**：假设 *PKE* (Public-Key Cryptography，公钥加密) 策略 *A* 的安全性依赖于 *RSA* 假设的困难性，*PKE* 策略 *B* 的安全性依赖于大整数分解假设的困难性，应该选择哪个策略？**由于大整数假设更弱，故应该选择大整数分解假设**。（？）
+- <font color=blue>注意：</font> **若解决大整数分解问题，则可以解决 *RSA-inv* 问题** （否则由 *N* 无法求出 $\phi(N)$，也无法求出和 $N$ 互素 的 $x$。若能求出，则可以将 $x^e = y \bmod N$ 改写为 $y = x^e \bmod N$，此时取 $x \in Z^*_N$ 与 $N$ 互素，则由欧拉定理的推论可以简化为 $y = x^{e \bmod \phi(N) = K} \bmod N$，此时，$x^K = y \bmod N$，此时只需要遍历很少的 $x$ 的取值即可找到 $x$ 满足上式。）
+- 因此，**大整数分解问题更难**，**大整数假设更弱（更适合作为策略的依赖）**。
+- **问题**：假设 *PKE* (Public-Key Cryptography，公钥加密) 策略 *A* 的安全性依赖于 *RSA* 假设的困难性，*PKE* 策略 *B* 的安全性依赖于大整数分解假设的困难性，应该选择哪个策略？**由于大整数假设更弱，故应该选择大整数分解假设**。
 
 ------
 
@@ -247,8 +249,8 @@
     - 设置 $g := h^{\frac{p - 1}{q}} \bmod p$
     - 返回 *p*、*q*、*g*（*G* 是序为 *q* 的 $Z_p^*$ 的子集）
 - 离散对数的定义：
-  - 在循环群中，存在唯一 $x \in Z_q$，满足 $h = g^x$，则 *x* 被称为 *h* 对于 *g* 的离散对数，写作 $x = \log_gh$
-- $DLog_{A, GenGroup}(n)$算法流程：
+  - 在循环群中，存在唯一 $x \in Z_q$，满足 $h = g^x$，则 *x* 被称为 *h* 对于 *g* 的离散对数，写作 $x = \log_gh$，离散对数极难计算，原因是泰勒展开在离散的整数系统中无效
+- $DLog_{A, GenGroup}(n)$算法流程：**告诉攻击者一个群内的元素，输出它对应的离散对数**
   - 运行 $GenGroup(1^n)$ 群生成算法以获得 *(G, q, g)*，选择一个唯一的元素 $h \in G$
   - 攻击者 *A* 被给予 *(G, q, g, h)*
   - 攻击者 *A* 输出 $x \in Z_q$
@@ -265,7 +267,7 @@
 ##### 4.4.1 CDH假设 (*Computable Diffie-Hellman Assumption*)
 
 - 考虑如下对群生成算法 *GenGroup*，攻击者算法 *A* 和安全参数 *n* 的 **可计算DH** (*CDH*，*Computable Diffie-Hellman*) 实验：
-- $CDH_{A, GenGroup}(n)$ 算法流程：
+- $CDH_{A, GenGroup}(n)$ 算法流程：**给攻击者 $h_1$、$h_2$，攻击者输出 $h$ 来猜测 $g^{x_1x_2}$**
   - 运行 $GenGroup(1^n)$ 群生成算法以获得 *(G, q, g)*，选择唯一序号 $x_1, x_2 \in Z_q$，设置 $h_1 = g^{x_1}, h_2 = g^{x_2}$
   - 攻击者 *A* 被给予 $(G, q, g, h_1, h_2)$
   - 攻击者输出 $h \in G$
@@ -278,7 +280,7 @@
 
 - 考虑如下对群生成算法 *GenGroup*，攻击者算法 *A* 和安全参数 *n* 的 **决定性DH** (*DDH*，*Decisional Diffie-Hellman*) 实验：
 
-- $DDH_{A, GenGroup}(n)$ 算法流程：
+- $DDH_{A, GenGroup}(n)$ 算法流程：**给攻击者 $h_1$、$h_2$、$h$，攻击者猜测该 $h$ 是否来自于 $g^{x_1x_2}$，还是来自于另一个随机的值**
   - 运行 $GenGroup(1^n)$ 群生成算法以获得 *(G, q, g)*，选择唯一序号 $x_1, x_2 \in Z_q$，设置 $h_1 = g^{x_1}, h_2 = g^{x_2}$
   - 选择一个随机 *bit* $b \in \{0, 1\}$:
     - 若 $b = 0$：随机选择一个唯一的 $h \in G$
