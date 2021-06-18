@@ -501,20 +501,6 @@ def break_AES_key(fake_request, public_key, private_key, message_encrypted_key, 
             AES_key = trial_key
         else:
             trial_key = int(AES_key >> 1)
-            # print("Trial key (again):", bin(trial_key)[2:])
-            string = ""
-            for j in hex(trial_key)[2:]:
-                string += j
-            # Padding, since we transfer from binary to hex
-            while len(string) < int(key_size / 4):
-                string = "0" + string
-            AES_encryptor = AES.new(a2b_hex(string), AES.MODE_ECB)
-            encrypted_request = str(b2a_hex(AES_encryptor.encrypt(fake_request.encode('utf-8'))), encoding='utf-8')
-            # Encrypted key
-            factor = fast_exp_mod(2, (i - 1) * public_key[1], public_key[0])
-            encrypted_key = fast_exp_mod(message_encrypted_key * factor, 1, public_key[0])
-            # Plain request from querying decryptor (CCA)
-            plain_request = query_decryptor(encrypted_request, encrypted_key, private_key, key_size)
             AES_key = trial_key
 
     return AES_key

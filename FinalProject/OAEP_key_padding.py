@@ -70,7 +70,7 @@ def OAEP_key_padding(plaintext, key_size):
     bits = dec_to_binary(plaintext)
     # Padding
     padded_msg, n_bits = binary_padding(bits, key_size)
-    # New cipher
+    # New plaintext
     plaintext = binary_to_dec(padded_msg)
     # plaintext = binary_unpadding(padded_msg, n_bits)
     return plaintext, n_bits
@@ -82,6 +82,6 @@ def OAEP_key_unpadding(plaintext, n_bits):
     padded_msg = dec_to_binary(plaintext)
     # # Padding
     # padded_msg, n_bits = binary_padding(bits, key_size)
-    # New cipher
+    # New plaintext
     plaintext = binary_unpadding(padded_msg, n_bits)
     return plaintext
