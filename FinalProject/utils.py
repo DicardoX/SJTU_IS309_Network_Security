@@ -12,17 +12,18 @@ from OAEP_key_padding import OAEP_key_padding, OAEP_key_unpadding
 
 # Small primes
 small_primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101,
-                    103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199,
-                    211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317,
-                    331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443,
-                    449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577,
-                    587, 593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701,
-                    709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839,
-                    853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983,
-                    991, 997]
+                103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199,
+                211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317,
+                331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443,
+                449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577,
+                587, 593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701,
+                709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839,
+                853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983,
+                991, 997]
 
 # Unit length
 unit_length = 16
+
 
 # ------------------------------------- Implementation of Textbook RSA -------------------------------------
 
@@ -114,8 +115,8 @@ def extended_euclidean(a, b):
     y0, y1 = 0, 1
     while b:
         q = a // b
-        x1, x0 = x0 - q*x1, x1
-        y1, y0 = y0 - q*y1, y1
+        x1, x0 = x0 - q * x1, x1
+        y1, y0 = y0 - q * y1, y1
         a, b = b, a % b
     return a, x0, y0
 
@@ -300,10 +301,12 @@ def decrypt_ciphertext(private_key, file_path, output_path):
 
 # WUP class
 class WUP:
-    def __init__(self, request, response, key):
+    def __init__(self, request, response, key, bytes_length):
         self.request = request
         self.response = response
         self.encrypted_key = key
+        self.bytes_length = bytes_length
+        self.crc = "10110011"
 
 
 # Client class
@@ -388,12 +391,23 @@ class server:
         return plaintext.rstrip("\0")
 
 
+def bytes2bits(src):
+    print(int.from_bytes(src, byteorder='big', signed=False))
+    return bin(int.from_bytes(src, byteorder='big', signed=False))
+
+
+def bits2bytes(bits, length):
+    n = int(bits, 2)
+    m_bytes = n.to_bytes(length=length, byteorder='big', signed=False)
+    return m_bytes
+
+
 # Generate a history message
 def generate_history_WUP_message(AES_key, public_key, key_padding_option, decrypted_OAEP_option):
     print("--------- Begin Generating history WUP message -----------")
 
     # WUP message
-    message = WUP("", "", "")
+    message = WUP("", "", "", 0)
     # AES Encryptor with ECB mode
     AES_encryptor = AES.new(a2b_hex(hex(AES_key)[2:]), AES.MODE_ECB)
 
@@ -414,8 +428,14 @@ def generate_history_WUP_message(AES_key, public_key, key_padding_option, decryp
             print("Error occurred when decrypting WUP message...exit")
             exit(-1)
 
+    # print(AES_encryptor.encrypt(request.encode('utf-8')))
+
+    # Bytes length
+    message.bytes_length = len(b2a_hex(AES_encryptor.encrypt(request.encode('utf-8'))))
+
     # Encrypt request with AES
-    message.request = b2a_hex(AES_encryptor.encrypt(request.encode('utf-8')))
+    message.request = bytes2bits(b2a_hex(AES_encryptor.encrypt(request.encode('utf-8'))))[2:]
+    # message.request = bits2bytes(message.request, message.bytes_length)
 
     # Response
     response = txt_reader("./test/response.txt")[0]
@@ -435,17 +455,18 @@ def generate_history_WUP_message(AES_key, public_key, key_padding_option, decryp
             exit(-1)
 
     # Encrypt response with AES
-    message.response = b2a_hex(AES_encryptor.encrypt(response.encode('utf-8')))
+    message.response = bytes2bits(b2a_hex(AES_encryptor.encrypt(response.encode('utf-8'))))[2:]
+    # message.response = bits2bytes(message.response, message.bytes_length)
 
     # Encrypt AES with public key in RSA
     message.encrypted_key = fast_exp_mod(AES_key, public_key[1], public_key[0])
 
     print("Original request:", request)
-    print("Original response:", response)
+    # print("Original response:", response)
     print("")
     print("######################## History WUP Message Info ########################")
-    print("- Encrypted request (bytes): ", message.request)
-    print("- Encrypted response (bytes): ", message.response)
+    print("- Encrypted request (bits): ", message.request)
+    print("- Encrypted response (bits): ", message.response)
     print("- Encrypted AES key:", message.encrypted_key)
     print("##########################################################################")
 
@@ -508,15 +529,17 @@ def break_AES_key(fake_request, public_key, private_key, message_encrypted_key, 
 
 # Decrypt WUP message using AES key
 def decrypt_WUP_message(message, AES_key):
+    # Bits to bytes
+    bytes_request = bits2bytes(message.request, message.bytes_length)
+    bytes_response = bits2bytes(message.response, message.bytes_length)
+
     AES_decryptor = AES.new(a2b_hex(hex(AES_key)[2:]), AES.MODE_ECB)
-    plain_request = str(AES_decryptor.decrypt(a2b_hex(message.request)), encoding='utf-8').rstrip("\0")
-    plain_response = str(AES_decryptor.decrypt(a2b_hex(message.response)), encoding='utf-8').rstrip("\0")
+    # plain_request = str(AES_decryptor.decrypt(a2b_hex(message.request)), encoding='utf-8').rstrip("\0")
+    plain_request = str(AES_decryptor.decrypt(a2b_hex(bytes_request)), encoding='utf-8').rstrip("\0")
+    plain_response = str(AES_decryptor.decrypt(a2b_hex(bytes_response)), encoding='utf-8').rstrip("\0")
     print("")
     print("################### Decrypted History WUP Message Info ###################")
     print("- Decrypted request: ", plain_request)
     print("- Decrypted response: ", plain_response)
     print("##########################################################################")
     print("")
-
-
-

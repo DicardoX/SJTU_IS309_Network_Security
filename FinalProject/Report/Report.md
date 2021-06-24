@@ -222,19 +222,20 @@ def decrypt_ciphertext(private_key, file_path, output_path):
 - *Client* 端：
     - 生成 *128-bit* 的 *AES* 密钥作为会话密钥；
     - 使用 *1024-bit* 的 *RSA* 公钥来加密会话密钥；
-    - 使用 *AES* 会话密钥对 *WUP* 交互报文的 *request* 和 *response* 进行加密；
+    - 使用 *AES* 会话密钥对 *WUP* 交互报文的 *request* 进行加密，并添加 *bytes_length* 信息和 *crc* 校验位；
     - 将经过 *RSA* 加密后的会话密钥和经过 *AES* 加密后的 *WUP* 交互报文发送给 *server*。
 - *Server* 端：
     - 使用 *RSA* 私钥解密接收到的 *AES* 会话密钥；
     - 选择上述解密结果中有效的 *128-bit* 低位作为 *AES* 会话密钥；
-    - 使用 *AES* 会话密钥解密接收到的 *WUP* 交互报文；
+    - 使用 *AES* 会话密钥和 *bytes_length* 信息解密接收到的 *WUP* 交互报文，并使用 *crc* 校验位判断字段是否合法；
     - 若 *WUP* 交互报文中的 *request* 合法，返回一个 *AES* 解密成功的响应。
 
-​		在上述过程中，*WUP* 交互报文的格式包括经过 *RSA* 加密后的会话密钥，以及经过 *AES* 加密后的 *request* 和 *response* 字段。将 *WUP* 设计成上述格式的原因主要有三点：
+​		在上述过程中，*WUP* 交互报文的格式包括经过 ***RSA* 加密后的会话密钥**，***bytes_length* 字段**，**经过 *AES* 加密后的 *request* 字段和 *response* 字段** ，以及 ***crc* 校验位**。将 *WUP* 设计成上述格式的原因主要有四点：
 
 - 考虑 *client* 和 *server* 建立连接及通信的过程，可能存在的交互字段格式包括会话密钥、*request* 和 *response*；
 - 将 *WUP* 交互报文设计成包含所有可能传输字段的格式，可以尽量减少特殊报文的单独讨论（例如建立连接阶段的密钥交换），增加 *WUP* 报文的通用性和泛化性；
-- 在通信过程中，一方可能会在接收到请求后，首先返回一个 *response*，再发送一个自己提出的 *request*，此时上述两个字段可以置于同一个 *WUP* 交互报文中发送，以提高通信的传输效率。若仅需使用 *WUP* 中的一个字段，则可以直接将剩余的字段设置为空。
+- 在通信过程中，一方可能会在接收到请求后，首先返回一个 *response*，再发送一个自己提出的 *request*，此时上述两个字段可以置于同一个 *WUP* 交互报文中发送，以提高通信的传输效率。若仅需使用 *WUP* 中的一个字段，则可以直接将剩余的字段设置为空；
+- *crc* 校验位能够保证报文在传输过程中的完整性。根本思想就是先在要发送的帧后面附加一个数，生成一个新帧发送给接收端。到达接收端后，再把接收到的新帧除以这个选定的除数。因为在发送端发送数据帧之前就已通过附加一个数，做了“去余”处理，所以结果应该是没有余数。如果有余数，则表明该帧在传输过程中出现了差错。
 
 ​		在报文交互的过程中，*client* 和 *server* 可以根据当前所需传输的交互信息类别，自主设置 *WUP* 交互报文的字段，进行高效的相互通信。
 
@@ -265,10 +266,12 @@ def decrypt_ciphertext(private_key, file_path, output_path):
 ```python
 # WUP class
 class WUP:
-    def __init__(self, request, response, key):
+    def __init__(self, request, response, key, bytes_length):
         self.request = request
         self.response = response
         self.encrypted_key = key
+        self.bytes_length = bytes_length
+        self.crc = "10110011"
         
 # Client class
 class client:
@@ -316,10 +319,10 @@ AES_encryptor = AES.new(a2b_hex(hex(AES_key)[2:]), AES.MODE_ECB)
 
 ```python
 # Encrypt request with AES
-message.request = b2a_hex(AES_encryptor.encrypt(request.encode('utf-8')))
+message.request = bytes2bits(b2a_hex(AES_encryptor.encrypt(request.encode('utf-8'))))[2:]
 # ...
 # Encrypt response with AES
-message.response = b2a_hex(AES_encryptor.encrypt(response.encode('utf-8')))
+message.response = bytes2bits(b2a_hex(AES_encryptor.encrypt(response.encode('utf-8'))))[2:]
 ```
 
 ​		最后，将 *AES* 会话密钥利用基于公钥的模指数计算进行 *RSA* 加密：
@@ -375,9 +378,13 @@ def break_AES_key(fake_request, public_key, private_key, message_encrypted_key, 
 ```python
 # Decrypt WUP message using AES key
 def decrypt_WUP_message(message, AES_key):
+		# Bits to bytes
+    bytes_request = bits2bytes(message.request, message.bytes_length)
+    bytes_response = bits2bytes(message.response, message.bytes_length)
+
     AES_decryptor = AES.new(a2b_hex(hex(AES_key)[2:]), AES.MODE_ECB)
-    plain_request = str(AES_decryptor.decrypt(a2b_hex(message.request)), encoding='utf-8').rstrip("\0")
-    plain_response = str(AES_decryptor.decrypt(a2b_hex(message.response)), encoding='utf-8').rstrip("\0")
+    plain_request = str(AES_decryptor.decrypt(a2b_hex(bytes_request)), encoding='utf-8').rstrip("\0")
+    plain_response = str(AES_decryptor.decrypt(a2b_hex(bytes_response)), encoding='utf-8').rstrip("\0")
     print("")
     print("################### Decrypted History WUP Message Info ###################")
     print("- Decrypted request: ", plain_request)
@@ -554,7 +561,7 @@ def OAEP_key_unpadding(plaintext, n_bits):
 
 ​		调用相关指令进行 *CCA2* 攻击的模拟。注意，指令通过 `--key_size` 参数设置 *AES* 密钥的大小。可以看到，对于原始的 *request* 和 *response* 请求，*client* 使用生成的 *AES* 密钥来进行加密，生成历史 *WUP* 交互报文。我们模拟的攻击者在获得 *WUP* 历史交互报文后，通过运行 *3.2.2* 节中实现的 `break_AES_key()` 函数来进行 *AES* 密钥的攻破，并打印结果。获取 *AES* 密钥后，攻击者调用 `decrypt_WUP_message()` 函数来进行历史 *WUP* 交互报文中的字段解密，将解密结果输出并打印。
 
-<img src="./cut/截屏2021-06-18 上午11.20.10.png" alt="avatar" style="zoom:50%;" />
+<img src="./cut/截屏2021-06-24 上午11.00.43.png" alt="avatar" style="zoom:50%;" />
 
 -----------
 
@@ -578,9 +585,13 @@ def OAEP_key_unpadding(plaintext, n_bits):
 
 ​		接下来，我们验证在 *CCA2* 攻击模型下，合法的接收方仍能够通过 *OAEP unpadding* 获取正常的解码结果。当添加 `--decrypt_OAEP_for_receiver` 参数后，接收方能够在 *CCA2* 攻击模型下进行正常的会话密钥解码，并以此解密 *WUP* 交互报文。
 
-<img src="./cut/截屏2021-06-18 上午11.38.27.png" alt="avatar" style="zoom:50%;" />
+<img src="./cut/截屏2021-06-24 上午11.01.53.png" alt="avatar" style="zoom:50%;" />
 
 ---------
+
+
+
+
 
 
 
